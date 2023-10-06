@@ -13,16 +13,18 @@ import arabic_reshaper
 
 app = Flask(__name__)
 
+# Updated font paths to be in the same directory as this script.
 FONTS = {
     "he": {
-        "Horev": "/path/to/Horev.ttf",
-        "MiriamMonoCLM-Book": "/path/to/MiriamMonoCLM-Book.ttf",
-        "VarelaRound-Regular": "/path/to/VarelaRound-Regular.ttf"
+        "Horev": "./Horev.ttf",
+        "MiriamMonoCLM-Book": "./MiriamMonoCLM-Book.ttf",
+        "VarelaRound-Regular": "./VarelaRound-Regular.ttf"
     },
     "ar": {
-        "Majeed": "/path/to/Majeed.ttf"
+        "Majeed": "./Majeed.ttf"
     }
 }
+
 
 def get_quranic_text(ref):
     url = f'http://api.alquran.cloud/v1/ayah/{ref}'
@@ -125,15 +127,21 @@ def upload_file():
         language = request.form['language']
         fontName = request.form['font']
         transparentText = request.form['transparentText']
-        customText = request.form.get('customText')  # Custom text may not be present
+        customText = request.form.get('customText', None)  # Custom text may not be present
+
         filename = secure_filename(file.filename)
-        UPLOADS_DIR = '/Users/matthewmiller/micrography-app'
+        UPLOADS_DIR = './uploads'
+        os.makedirs(UPLOADS_DIR, exist_ok=True)
         filepath = os.path.join(UPLOADS_DIR, filename)
         file.save(filepath)
+
         image = Image.open(filepath)
         result, text = generate_micrography(source, text_ref, image, sampleDensity, language, fontName, transparentText, customText)
+        
         os.remove(filepath)
+        
         return render_template_string("<p>Text used in the micrography: {{text}}</p><img src='{{result}}'>", text=text, result=result)
+
     else:
         return '''
         <!doctype html>
@@ -179,4 +187,4 @@ def upload_file():
         '''
 
 if __name__ == '__main__':
-       app.run(debug=True, port=5002)
+    app.run(debug=True, port=5002)
