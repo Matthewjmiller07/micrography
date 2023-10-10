@@ -11,7 +11,7 @@ from io import BytesIO
 from bidi.algorithm import get_display
 import arabic_reshaper
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 # Updated font paths to be in the same directory as this script.
 FONTS = {
@@ -127,7 +127,7 @@ def upload_file():
         language = request.form['language']
         fontName = request.form['font']
         transparentText = request.form['transparentText']
-        customText = request.form.get('customText', None)  # Custom text may not be present
+        customText = request.form.get('customText', None)
 
         filename = secure_filename(file.filename)
         UPLOADS_DIR = './uploads'
@@ -141,12 +141,17 @@ def upload_file():
         os.remove(filepath)
         
         return render_template_string("<p>Text used in the micrography: {{text}}</p><img src='{{result}}'>", text=text, result=result)
-
     else:
-        return '''
+        sample_input_img_url = url_for('static', filename='sample_input.jpg')
+        sample_output_img_url = url_for('static', filename='sample_output.jpg')
+        return f'''
         <!doctype html>
         <title>Upload File and Text Reference</title>
         <h1>Upload File and Text Reference</h1>
+        <h2>Sample Input Image</h2>
+        <img src="{sample_input_img_url}" alt="Sample Input">
+        <h2>Sample Output Image</h2>
+        <img src="{sample_output_img_url}" alt="Sample Output">
         <form method="post" enctype="multipart/form-data">
             <label for="file">Upload Image:</label><br>
             <input type="file" name="file"><br>
@@ -160,8 +165,8 @@ def upload_file():
             <label for="textRef">Enter Text Reference:</label><br>
             <input type="text" name="textRef"><br>
             <label for="customText">Enter Custom Text:</label><br>
-            <input type="text" name="customText" placeholder="For Custom, enter your text here"><br>
-            <label for="sampleDensity">Sample Density (higher values result in less dense image):</label><br>
+            <input type="text" name="customText"><br>
+            <label for="sampleDensity">Sample Density:</label><br>
             <input type="number" name="sampleDensity" value="5"><br>
             <label for="language">Choose a language:</label><br>
             <input type="radio" id="he" name="language" value="he">
@@ -177,7 +182,7 @@ def upload_file():
             <label for="VarelaRound-Regular">VarelaRound-Regular (Hebrew)</label><br>
             <input type="radio" id="Majeed" name="font" value="Majeed">
             <label for="Majeed">Majeed (Arabic)</label><br>
-            <label for="transparentText">Transparent Text (if 'off', text will not be drawn on transparent parts of the image):</label><br>
+            <label for="transparentText">Transparent Text:</label><br>
             <input type="radio" id="on" name="transparentText" value="on">
             <label for="on">On</label><br>
             <input type="radio" id="off" name="transparentText" value="off">
@@ -185,6 +190,6 @@ def upload_file():
             <input type="submit" value="Upload">
         </form>
         '''
-
+        
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
