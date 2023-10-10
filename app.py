@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, url_for
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageDraw, ImageFont
 import requests
